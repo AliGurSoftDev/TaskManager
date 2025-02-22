@@ -1,0 +1,83 @@
+﻿@model TaskManager.Models.Task
+
+@{
+    ViewBag.Title = @TaskManagerEditResource_TR.EditHeader;
+}
+@using TaskManager.Views.Tasks.Resources
+
+<h2>@TaskManagerEditResource_TR.EditHeader</h2>
+<style>
+
+    .actButton {
+        background-color: lightgray;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        --bs-btn-hover-border-color: #0d6efd;
+    }
+</style>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            @TaskManagerEditResource_TR.TaskName
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.TaskName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.TaskName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @TaskManagerEditResource_TR.TaskDetails
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.TaskDetails, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.TaskDetails, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @TaskManagerEditResource_TR.TaskStatus
+            <div class="col-md-10">
+                @Html.EnumDropDownListFor(model => model.TaskStatus, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.TaskStatus, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @TaskManagerEditResource_TR.LastDate
+            <div class="col-md-10">
+                @if (Model.LastDate.HasValue)
+                {
+                    @Html.EditorFor(model => model.LastDate, new { htmlAttributes = new { type = "date", @class = "form-control", Value = Model.LastDate.Value.ToString("yyyy-MM-dd") } })
+                }
+                else
+                {
+                    @Html.EditorFor(model => model.LastDate, new { htmlAttributes = new { type = "date", @class = "form-control" } })
+                }
+                @Html.ValidationMessageFor(model => model.LastDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                @Html.ActionLink(TaskManagerEditResource_TR.BackButton, "Index") |
+                <input type="submit" value="@TaskManagerEditResource_TR.SaveButton" class="btn actButton" />
+            </div>
+
+            <div>
+                
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

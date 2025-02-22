@@ -1,0 +1,64 @@
+﻿@model IEnumerable<TaskManager.Models.Task>
+
+@{
+    ViewBag.Title = "Archived Tasks";
+}
+@using TaskManager.Views.Tasks.Resources
+
+<h2>@TaskManagerArchiveResource_TR.ArchiveHeader</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@TaskManagerArchiveResource_TR.TaskName</th>
+            <th>@TaskManagerArchiveResource_TR.TaskDetails</th>
+            <th>@TaskManagerArchiveResource_TR.TaskStatus</th>
+            <th>@TaskManagerArchiveResource_TR.LastDate</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.TaskName)</td>
+                <td>@Html.DisplayFor(modelItem => item.TaskDetails)</td>
+                <td>@Html.DisplayFor(modelItem => item.TaskStatus)</td>
+                <td>
+                    @if (item.LastDate.HasValue)
+                    {
+                        @item.LastDate.Value.ToString("dd-MM-yyyy")
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning remove-Archive" data-task-id="@item.Id">@TaskManagerArchiveResource_TR.RemoveArchive</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@Html.ActionLink(TaskManagerArchiveResource_TR.BackButton, "Index")
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".remove-Archive").click(function () {
+                var taskId = $(this).data("task-id");
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("RemoveFromArchive", "Tasks")",
+                    data: { id: taskId },
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload(); // Reload the page to refresh the list
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+}

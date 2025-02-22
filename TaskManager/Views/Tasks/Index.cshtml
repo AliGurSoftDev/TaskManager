@@ -1,0 +1,176 @@
+﻿<head>
+    <meta charset="utf-8">
+</head>
+
+@model IEnumerable<TaskManager.Models.Task>
+@{
+    ViewBag.Title = @TaskManagerIndexResource_TR.IndexHeader;
+    ViewBag.Message = String.Empty;
+}
+@using TaskManager.Views.Tasks.Resources
+
+<h2>@TaskManagerIndexResource_TR.IndexHeader</h2>
+
+<div style="float: right;">
+    <select id="taskStatusFilter" class="form-control" style="width: 200px; display: inline-block;">
+        <option value="">@TaskManagerIndexResource_TR.AllStatuses</option>
+        @foreach (var status in Enum.GetValues(typeof(TaskManager.Models.TaskStatus)))
+        {
+            <option value="@status">@status</option>
+        }
+    </select>
+        <button id="applyFilterButton" class="btn btn-primary">@TaskManagerIndexResource_TR.ApplyFilter</button>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@TaskManagerIndexResource_TR.TaskName</th>
+            <th>@TaskManagerIndexResource_TR.TaskDetails</th>
+            <th>@TaskManagerIndexResource_TR.TaskStatus</th>
+            <th>@TaskManagerIndexResource_TR.LastDate</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="taskTableBody">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.TaskName)</td>
+                <td>
+                    @if (string.IsNullOrEmpty(item.TaskDetails))
+                    {
+                        @(string.Empty)
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.TaskDetails)
+                    }
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.TaskStatus)</td>
+                <td>
+                    @if (item.LastDate.HasValue)
+                    {
+                        @item.LastDate.Value.ToString("dd-MM-yyyy")
+                    }
+                    else
+                    {
+                        @(string.Empty)
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink(TaskManagerIndexResource_TR.TaskEdit, "Edit", new { id = item.Id }) |
+                    @Html.ActionLink(TaskManagerIndexResource_TR.TaskDelete, "Delete", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tr>
+        <td>
+            @Html.TextBox("taskNameTBox", null, new { placeholder = TaskManagerIndexResource_TR.TaskName, @class = "form-control" })
+            <span id="taskNameError" style="color: red; display: none;"></span>
+        </td>
+        <td>
+            @Html.TextBox("taskDetailsTbox", null, new { placeholder = TaskManagerIndexResource_TR.TaskDetails, @class = "form-control" })
+        </td>
+        <td>
+            @Html.EnumDropDownListFor(m => new TaskManager.Models.Task().TaskStatus, htmlAttributes: new { @class = "form-control", id = "taskStatusTBox" })
+        </td>
+        <td>
+            @Html.TextBox("lastDateInput", null, new { type = "date", @class = "form-control", placeholder = TaskManagerIndexResource_TR.LastDate })
+        </td>
+        <td>
+            <button type="button" id="createTaskButton" class="btn btn-light">@TaskManagerIndexResource_TR.CreateNewTask</button>
+        </td>
+    </tr>
+</table>
+
+@Html.ActionLink(TaskManagerIndexResource_TR.ArchiveButton, "Archive")
+
+@section Scripts {
+    <script>
+        var taskEditResource = "@TaskManagerIndexResource_TR.TaskEdit";
+        var taskDeleteResource = "@TaskManagerIndexResource_TR.TaskDelete";
+
+        $(document).ready(function () {
+            var today = new Date().toISOString().split('T')[0];
+            $('#lastDateInput').attr('min', today);
+            $("#createTaskButton").click(function () {
+                var taskName = $("#taskNameTBox").val();
+                var taskDetails = $("#taskDetailsTbox").val();
+                var taskStatus = $("#taskStatusTBox").val();
+                var lastDate = $("#lastDateInput").val();
+                var taskNameError = $("#taskNameError");
+
+                if (taskName.trim() === "") {
+                    taskNameError.text('@TaskManagerIndexResource_TR.TaskNameRequiredError');
+                    taskNameError.show();
+                    return;
+                }
+                taskNameError.hide();
+                taskNameError.text("");
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("Create", "Tasks")",
+                    data: {
+                        TaskName: taskName,
+                        TaskDetails: taskDetails,
+                        TaskStatus: taskStatus,
+                        LastDate: lastDate
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            $("#taskNameTBox").val("");
+                            $("#taskDetailsTbox").val("");
+                            $("#taskStatusTBox").prop("selectedIndex", 0);
+                            $("#lastDateTBox").val("");
+
+                            var selectedStatus = $("#taskStatusFilter").val();
+                            loadTasks(selectedStatus);
+                        }
+                        else {
+                            alert(response.errors);
+                        }
+                    }
+                });
+            });
+
+            $("#applyFilterButton").click(function () {
+                var selectedStatus = $("#taskStatusFilter").val();
+                loadTasks(selectedStatus);
+            });
+
+            function loadTasks(status) {
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("GetTaskList", "Tasks")",
+                    data: { status: status },
+                    dataType: "json",
+                    success: function (taskListResponse) {
+                        if (taskListResponse.success) {
+                            $("#taskTableBody").empty();
+                            $.each(taskListResponse.tasks, function (index, task) {
+                                var newRow = "<tr>" +
+                                    "<td>" + task.taskName + "</td>" +
+                                    "<td>" + task.taskDetails + "</td>" +
+                                    "<td>" + task.taskStatus + "</td>" +
+                                    "<td>" + task.lastDate + "</td>" +
+                                    "<td><a href='/Tasks/Edit/" + task.id + "'>" + taskEditResource + "</a> | <a href='/Tasks/Delete/" + task.id + "'>" + taskDeleteResource + "</a></td>" +
+                                    "</tr>";
+                                $("#taskTableBody").append(newRow);
+                            });
+                        } else {
+                            console.log(taskListResponse.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            loadTasks("");
+        });
+    </script>
+}

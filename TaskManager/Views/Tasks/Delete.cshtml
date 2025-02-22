@@ -1,0 +1,83 @@
+﻿@model TaskManager.Models.Task
+
+@{
+    ViewBag.Title = @TaskManagerDeleteResource_TR.DeleteHeader;
+}
+@using TaskManager.Views.Tasks.Resources
+
+<style>
+
+    .actButton {
+        background-color: lightgray;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        --bs-btn-hover-border-color: #0d6efd;
+    }
+</style>
+
+<h2>@TaskManagerDeleteResource_TR.DeleteHeader</h2>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @TaskManagerDeleteResource_TR.TaskName
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TaskName)
+        </dd>
+        @if (!Model.TaskDetails.IsEmpty())
+        {
+            <dt>
+                @TaskManagerDeleteResource_TR.TaskDetails
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.TaskDetails)
+            </dd>
+        }
+        <dt>
+            @TaskManagerDeleteResource_TR.TaskStatus
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TaskStatus)
+        </dd>
+
+        @if (Model.LastDate.HasValue)
+        {
+            <dt>
+                @TaskManagerDeleteResource_TR.LastDate
+            </dt>
+
+            <dd>
+
+                @Model.LastDate.Value.ToString("dd.MM.yyyy")
+
+            </dd>
+        }
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id) //Hidden Id
+
+        <p>@TaskManagerDeleteResource_TR.ArchiveQuestion</p>
+
+        <label>
+            @Html.RadioButton("archiveTask", "true", false) @TaskManagerDeleteResource_TR.YesRadio
+        </label>
+        <label>
+            @Html.RadioButton("archiveTask", "false", true) @TaskManagerDeleteResource_TR.NoRadio
+        </label>
+        <br /><br />
+
+              <div class="form-actions no-color">
+                  @Html.ActionLink(TaskManagerDeleteResource_TR.BackButton, "Index") |
+                  <input type="submit" value="@TaskManagerDeleteResource_TR.DeleteButton" class="btn actButton" />
+              </div>
+    }
+</div>
